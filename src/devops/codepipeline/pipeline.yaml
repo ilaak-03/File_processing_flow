@@ -178,6 +178,5 @@ Resources:
                 Version: 1
               InputArtifacts:
                 - Name: SourceOutput
-                - Name: BuildOutput   # must exactly match Build stage OutputArtifacts
               Configuration:
                 ProjectName: !Ref DeployCodeBuildProject

@@ -3,6 +3,8 @@ version: 0.2
 phases:
   build:
     commands:
+      - AWS_ACCOUNT_ID=140857882741
+
       - aws lambda update-function-code \
           --function-name upload-handler-${AWS_ACCOUNT_ID} \
           --zip-file fileb://dist/upload.zip
