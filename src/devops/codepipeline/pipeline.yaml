@@ -177,6 +177,6 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               InputArtifacts:
-                - Name: SourceOutput
+                - Name: BuildOutput
               Configuration:
                 ProjectName: !Ref DeployCodeBuildProject
