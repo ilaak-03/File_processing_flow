@@ -6,17 +6,21 @@ phases:
       - AWS_ACCOUNT_ID=140857882741
 
       - aws lambda update-function-code \
+          --region ap-south-1 \
           --function-name upload-handler-${AWS_ACCOUNT_ID} \
           --zip-file fileb://dist/upload.zip
 
       - aws lambda update-function-code \
+          --region ap-south-1 \
           --function-name s3-processor-${AWS_ACCOUNT_ID} \
           --zip-file fileb://dist/s3processor.zip
 
       - aws lambda update-function-code \
+          --region ap-south-1 \
           --function-name sqs-worker-${AWS_ACCOUNT_ID} \
           --zip-file fileb://dist/sqsworker.zip
 
       - aws lambda update-function-code \
+          --region ap-south-1 \
           --function-name status-handler-${AWS_ACCOUNT_ID} \
           --zip-file fileb://dist/status.zip

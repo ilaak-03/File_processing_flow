@@ -70,6 +70,10 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: ap-south-1
+      
 
   #################################
   # Deploy Project
@@ -91,6 +95,9 @@ Resources:
         EnvironmentVariables:
           - Name: ENVIRONMENT
             Value: !Ref Environment
+        EnvironmentVariables:
+          - Name: AWS_DEFAULT_REGION
+            Value: ap-south-1
 
   #################################
   # CodePipeline Role
