@@ -1,0 +1,32 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+
+  build:
+    commands:
+      - echo "Deploy Upload Lambda"
+      - zip upload.zip src/Upload_File.py
+      - aws lambda update-function-code \
+          --function-name Upload_File \
+          --zip-file fileb://upload.zip
+
+      - echo "Deploy S3 Processor Lambda"
+      - zip s3.zip src/S3_Processor.py
+      - aws lambda update-function-code \
+          --function-name S3_Processor_Lambda \
+          --zip-file fileb://s3.zip
+
+      - echo "Deploy SQS Worker Lambda"
+      - zip sqs.zip src/SQS_Worker.py
+      - aws lambda update-function-code \
+          --function-name SQS_Worker_Lambda \
+          --zip-file fileb://sqs.zip
+
+      - echo "Deploy Get Status Lambda"
+      - zip status.zip src/Get_Status.py
+      - aws lambda update-function-code \
+          --function-name Get_Status_Lambda \
+          --zip-file fileb://status.zip
