@@ -1,46 +1,15 @@
 version: 0.2
 
-env:
-  variables:
-    AWS_ACCOUNT_ID: "140857882741"
-
 phases:
-  install:
-    commands:
-      - echo "Installing dependencies if needed..."
-      # Add pip install or npm install if required
-
   build:
     commands:
-      - echo "Creating dist folder..."
       - mkdir -p dist
-      - echo "Zipping Lambda functions..."
-      - zip -j dist/upload.zip src/Upload_File.py
-      - zip -j dist/s3processor.zip src/S3_Processor.py
-      - zip -j dist/sqsworker.zip src/SQS_Worker.py
-      - zip -j dist/status.zip src/Get_Status.py
-
-  post_build:
-    commands:
-      - echo "Updating Lambda functions..."
-      - aws lambda update-function-code \
-          --region ap-south-1 \
-          --function-name upload-handler-${AWS_ACCOUNT_ID} \
-          --zip-file fileb://dist/upload.zip
-      - aws lambda update-function-code \
-          --region ap-south-1 \
-          --function-name s3-processor-${AWS_ACCOUNT_ID} \
-          --zip-file fileb://dist/s3processor.zip
-      - aws lambda update-function-code \
-          --region ap-south-1 \
-          --function-name sqs-worker-${AWS_ACCOUNT_ID} \
-          --zip-file fileb://dist/sqsworker.zip
-      - aws lambda update-function-code \
-          --region ap-south-1 \
-          --function-name status-handler-${AWS_ACCOUNT_ID} \
-          --zip-file fileb://dist/status.zip
+      - zip dist/upload.zip src/Upload_File.py
+      - zip dist/s3processor.zip src/S3_Processor.py
+      - zip dist/sqsworker.zip src/SQS_Worker.py
+      - zip dist/status.zip src/Get_Status.py
 
 artifacts:
   files:
-    - dist/**/*.zip
+    - dist/**/*
     - src/devops/codepipeline/deployspec.yaml
