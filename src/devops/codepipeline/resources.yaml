@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Core infrastructure for file processing system
+Transform: AWS::Serverless-2016-10-31
 
 Parameters:
   Environment:
@@ -202,3 +203,12 @@ Resources:
     Properties:
       RestApiId: !Ref Api
       StageName: dev
+      
+Outputs:
+  UploadApiUrl:
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev/upload"
+    Description: "POST URL for Upload Lambda"
+
+  StatusApiUrl:
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev/status"
+    Description: "GET URL for Status Lambda"
