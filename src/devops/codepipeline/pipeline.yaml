@@ -81,7 +81,7 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: "File_processing_flow/src/devops/codepipeline/buildspec.yaml"
+        BuildSpec: "src/devops/codepipeline/buildspec.yaml"
       Artifacts:
         Type: CODEPIPELINE
       Environment:
