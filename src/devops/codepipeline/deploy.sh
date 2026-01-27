@@ -2,10 +2,10 @@
 set -e
 
 ENV=$1
-source devops/env/${ENV}-env.sh
+source ../env/${ENV}-env.sh
 
 aws cloudformation deploy \
-  --template-file devops/codepipeline/pipeline.yaml \
+  --template-file pipeline.yaml \
   --stack-name file-processing-pipeline-${ENV} \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides \
