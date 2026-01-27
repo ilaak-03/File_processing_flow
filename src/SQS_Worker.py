@@ -6,7 +6,7 @@ dynamodb = boto3.resource("dynamodb")
 ses = boto3.client("ses")
 
 TABLE = dynamodb.Table("FileIntake")
-SENDER = "ilaakmandya@gmail.com"
+SENDER = "ilaaishamandya@gmail.com"
 
 EMAIL_TEMPLATE = """Hello,
 
