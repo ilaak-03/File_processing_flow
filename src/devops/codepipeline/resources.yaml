@@ -8,14 +8,6 @@ Parameters:
 Resources:
 
   #################################
-  # S3 Bucket for uploads
-  #################################
-  UploadBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "file-upload-${AWS::AccountId}"
-
-  #################################
   # DynamoDB Table
   #################################
   FileMetadataTable:
@@ -124,6 +116,7 @@ Resources:
           def lambda_handler(event, context):
               return {"statusCode": 200, "body": "Status bootstrap"}
 
+
   #################################
   # S3 → Lambda Permission
   #################################
@@ -134,6 +127,15 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: s3.amazonaws.com
       SourceArn: !GetAtt UploadBucket.Arn
+  UploadBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "file-upload-${AWS::AccountId}"
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt S3ProcessorLambda.Arn
+
 
   #################################
   # SQS → Lambda mapping
@@ -191,3 +193,12 @@ Resources:
         Type: AWS_PROXY
         IntegrationHttpMethod: POST
         Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusLambda.Arn}/invocations"
+
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - UploadMethod
+      - StatusMethod
+    Properties:
+      RestApiId: !Ref Api
+      StageName: dev
