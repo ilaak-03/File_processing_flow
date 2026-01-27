@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - aws lambda update-function-code \
+          --function-name upload-handler-${AWS_ACCOUNT_ID} \
+          --zip-file fileb://dist/upload.zip
+
+      - aws lambda update-function-code \
+          --function-name s3-processor-${AWS_ACCOUNT_ID} \
+          --zip-file fileb://dist/s3processor.zip
+
+      - aws lambda update-function-code \
+          --function-name sqs-worker-${AWS_ACCOUNT_ID} \
+          --zip-file fileb://dist/sqsworker.zip
+
+      - aws lambda update-function-code \
+          --function-name status-handler-${AWS_ACCOUNT_ID} \
+          --zip-file fileb://dist/status.zip

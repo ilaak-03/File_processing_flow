@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CodePipeline to deploy existing Lambda functions (flat src)
+Description: CI/CD pipeline for Lambdas
 
 Parameters:
   GitHubOwner:
@@ -15,42 +15,25 @@ Parameters:
     Type: String
   Environment:
     Type: String
+  AWSAccountId:
+    Type: String
 
 Resources:
 
-  CodePipelineRole:
-    Type: AWS::IAM::Role
+  #################################
+  # Artifact Bucket
+  #################################
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
     Properties:
-      RoleName: !Sub codepipeline-${Environment}
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: codepipeline.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: CodePipelinePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:*
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - codebuild:*
-                Resource: "*"
-              - Effect: Allow
-                Action:
-                  - codestar-connections:UseConnection
-                Resource: !Ref CodeStarConnectionArn
+      BucketName: !Ref ArtifactBucketName
 
+  #################################
+  # CodeBuild Role
+  #################################
   CodeBuildRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub codebuild-${Environment}
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -59,29 +42,28 @@ Resources:
               Service: codebuild.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: LambdaDeployPolicy
+        - PolicyName: BuildAWSDeployPolicy
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
                   - lambda:UpdateFunctionCode
-                Resource: "*"
-              - Effect: Allow
-                Action:
+                  - s3:*
                   - logs:*
-                  - s3:GetObject
-                  - s3:PutObject
                 Resource: "*"
 
-  CodeBuildProject:
+  #################################
+  # Build Project
+  #################################
+  BuildCodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub lambda-deploy-${Environment}
+      Name: !Sub "lambda-build-${AWSAccountId}"
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: "src/devops/codepipeline/buildspec.yaml"
+        BuildSpec: src/devops/codepipeline/buildspec.yaml
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -89,17 +71,70 @@ Resources:
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
 
+  #################################
+  # Deploy Project
+  #################################
+  DeployCodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "lambda-deploy-${AWSAccountId}"
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: src/devops/codepipeline/deployspec.yaml
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+
+  #################################
+  # CodePipeline Role
+  #################################
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: PipelineAWSPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                  - codebuild:*
+                  - codestar-connections:UseConnection
+                Resource: "*"
+
+  #################################
+  # CodePipeline
+  #################################
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       RoleArn: !GetAtt CodePipelineRole.Arn
       ArtifactStore:
         Type: S3
-        Location: !Ref ArtifactBucketName
+        Location: !Ref ArtifactBucket
       Stages:
+
+        #################################
+        # Source Stage
+        #################################
         - Name: Source
           Actions:
-            - Name: GitHubSource
+            - Name: SourceFromGitHub
               ActionTypeId:
                 Category: Source
                 Owner: AWS
@@ -112,6 +147,27 @@ Resources:
               OutputArtifacts:
                 - Name: SourceOutput
 
+        #################################
+        # Build Stage
+        #################################
+        - Name: Build
+          Actions:
+            - Name: PackageLambdas
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: SourceOutput
+              OutputArtifacts:
+                - Name: BuildOutput
+              Configuration:
+                ProjectName: !Ref BuildCodeBuildProject
+
+        #################################
+        # Deploy Stage
+        #################################
         - Name: Deploy
           Actions:
             - Name: DeployLambdas
@@ -121,6 +177,6 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               InputArtifacts:
-                - Name: SourceOutput
+                - Name: BuildOutput   # must exactly match Build stage OutputArtifacts
               Configuration:
-                ProjectName: !Ref CodeBuildProject
+                ProjectName: !Ref DeployCodeBuildProject
