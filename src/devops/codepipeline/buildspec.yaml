@@ -11,8 +11,8 @@ phases:
   build:
     commands:
       # Build SAM application locally (no Docker)
-      - sam build -t resources.yaml
-      
+      - sam build -t src/devops/codepipeline/resources.yaml
+
 artifacts:
   files:
     # Built SAM artifacts (zipped Lambdas + transformed template)
