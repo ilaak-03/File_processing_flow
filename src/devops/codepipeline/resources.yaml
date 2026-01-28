@@ -12,13 +12,17 @@ Resources:
   # DynamoDB Table
   #################################
   FileMetadataTable:
-    Type: AWS::Serverless::SimpleTable
+    Type: AWS::DynamoDB::Table
     Properties:
-      TableName: !Sub "FileMetadata-${AWS::AccountId}"
-      PrimaryKey:
-        Name: fileId
-        Type: String
+      TableName: FileMetadataTable
       BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: fileId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: fileId
+          KeyType: HASH
+
 
   #################################
   # SQS + DLQ
