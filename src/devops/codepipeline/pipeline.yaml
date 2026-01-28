@@ -31,8 +31,9 @@ Resources:
   #################################
   # CodeBuild Role
   #################################
-  CodeBuildRole:
-    Type: AWS::IAM::Role
+
+  CodeBuildRole:   
+    Type: AWS::IAM::Role    
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -54,6 +55,9 @@ Resources:
                   - lambda:*
                   - iam:*
                   - apigateway:*
+                  - dynamodb:*           
+                  - sqs:*                
+                  - events:*             
                 Resource: "*"
               - Effect: Allow
                 Action:
@@ -63,6 +67,8 @@ Resources:
                 Resource:
                   - !Sub "arn:aws:s3:::${ArtifactBucketName}"
                   - !Sub "arn:aws:s3:::${ArtifactBucketName}/*"
+                  - "arn:aws:s3:::file-processing-pipeline-artifacts"      
+                  - "arn:aws:s3:::file-processing-pipeline-artifacts/*"   
 
 
   #################################

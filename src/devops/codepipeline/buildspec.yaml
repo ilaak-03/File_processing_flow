@@ -13,18 +13,22 @@ phases:
     commands:
       - echo "Building SAM application"
       - sam build -t src/devops/codepipeline/resources.yaml
+      - echo "Listing build output"
+      - ls -la .aws-sam/build/
 
   post_build:
     commands:
       - echo "Deploying SAM stack"
       - sam deploy \
-          --template-file .aws-sam/build/resources.yaml \
+          --template-file .aws-sam/build/template.yaml \
           --stack-name file-flow-resources-dev \
           --region ap-south-1 \
           --s3-bucket file-processing-pipeline-artifacts \
           --capabilities CAPABILITY_NAMED_IAM \
+          --parameter-overrides Environment=dev \
           --no-confirm-changeset \
-          --no-fail-on-empty-changeset
+          --no-fail-on-empty-changeset \
+          --debug
 
 artifacts:
   files:
