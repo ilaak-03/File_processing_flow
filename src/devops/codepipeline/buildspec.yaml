@@ -7,12 +7,13 @@ phases:
     commands:
       - pip install --upgrade pip
       - pip install aws-sam-cli
+
   build:
     commands:
-      # Build SAM application locally (no Docker)
       - sam build -t src/devops/codepipeline/resources.yaml
+
   post_build:
-  commands:
+    commands:
       - sam deploy \
           --template-file .aws-sam/build/template.yaml \
           --stack-name file-flow-resources-dev \
@@ -21,7 +22,6 @@ phases:
           --s3-bucket $ARTIFACT_BUCKET \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset
-
 
 artifacts:
   files:
