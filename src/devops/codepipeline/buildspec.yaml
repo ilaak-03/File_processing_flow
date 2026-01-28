@@ -19,7 +19,7 @@ phases:
           --stack-name file-flow-resources-dev \
           --capabilities CAPABILITY_NAMED_IAM \
           --region ap-south-1 \
-          --s3-bucket $ARTIFACT_BUCKET \
+          --s3-bucket "${ARTIFACT_BUCKET}" \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset
 
