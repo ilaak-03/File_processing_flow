@@ -5,8 +5,8 @@ import datetime
 dynamodb = boto3.resource("dynamodb")
 ses = boto3.client("ses")
 
-TABLE = dynamodb.Table("FileIntake")
-SENDER = "ilaaishamandya@gmail.com"
+TABLE = dynamodb.Table("FileMetadata-140857882741")
+SENDER = "ilaakmandya@gmail.com"
 
 EMAIL_TEMPLATE = """Hello,
 

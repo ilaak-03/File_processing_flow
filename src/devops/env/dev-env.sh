@@ -1,5 +1,12 @@
+#!/bin/bash
+
 export GITHUB_OWNER="ilaak-03"
 export GITHUB_REPO="File_processing_flow"
 export GITHUB_BRANCH="main"
 export CODESTAR_ARN="arn:aws:codeconnections:ap-south-1:140857882741:connection/e9fe6d02-5446-46c0-a03b-b70878d20fb4"
-export ARTIFACT_BUCKET="file-processing-s3-bucket "
+export ARTIFACT_BUCKET="file-processing-pipeline-artifacts"
+
+# THIS must match everywhere
+export ENV="dev"
+
+export AWS_ACCOUNT_ID="140857882741"

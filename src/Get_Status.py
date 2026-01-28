@@ -1,7 +1,7 @@
 import json, boto3
 
 dynamodb = boto3.resource("dynamodb")
-TABLE = dynamodb.Table("FileIntake")
+TABLE = dynamodb.Table("FileMetadata-140857882741")
 
 def lambda_handler(event, context):
     file_id = event.get("pathParameters", {}).get("fileId")
