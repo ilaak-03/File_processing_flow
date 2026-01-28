@@ -98,7 +98,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: ../../
+      CodeUri: src/Upload_File.py
       Events:
         ApiUpload:
           Type: Api
@@ -116,7 +116,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: ../../
+      CodeUri: src/S3_Processor.py
       Events:
         S3UploadEvent:
           Type: S3
@@ -133,7 +133,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: ../../
+      CodeUri: src/SQS_Worker.py
       Events:
         SQSEvent:
           Type: SQS
@@ -150,7 +150,7 @@ Resources:
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: ../../
+      CodeUri: src/Get_Status.py
       Events:
         ApiStatus:
           Type: Api
