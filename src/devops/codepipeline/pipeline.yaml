@@ -79,7 +79,10 @@ Resources:
   DeployCodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "lambda-deploy-${AWSAccountId}"
+      Name: !Sub "lambda-deploy-${AWSAccountId}-v2"
+      Tags:
+        - Key: Recreated
+          Value: "true"
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
@@ -90,6 +93,7 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
+
 
   #################################
   # CodePipeline Role
