@@ -52,6 +52,7 @@ Resources:
                   - s3:*
                   - logs:*
                   - lambda:*
+                  - iam:*
                   - apigateway:*
                 Resource: "*"
 

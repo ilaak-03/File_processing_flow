@@ -19,6 +19,7 @@ phases:
           --stack-name file-flow-resources-dev \
           --capabilities CAPABILITY_NAMED_IAM \
           --region ap-south-1 \
+          --resolve-s3 \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset
 
