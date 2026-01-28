@@ -77,10 +77,10 @@ Resources:
   # API Gateway
   #################################
   MyApi:
-  Type: AWS::Serverless::Api
-  Properties:
-    Name: !Sub "file-api-${AWS::AccountId}" 
-    StageName: dev
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub "file-api-${AWS::AccountId}" 
+      StageName: dev
 
   #################################
   # Lambda Functions (SAM)
@@ -89,12 +89,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "upload-handler-${AWS::AccountId}"
-      Handler: src/Upload_File.lambda_handler
+      Handler: Upload_File.lambda_handler
       Runtime: python3.11
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: src/Upload_File.py
+      CodeUri: ../../
       Events:
         ApiUpload:
           Type: Api
@@ -107,12 +107,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "s3-processor-${AWS::AccountId}"
-      Handler: src/S3_Processor.lambda_handler
+      Handler: S3_Processor.lambda_handler
       Runtime: python3.11
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: src/S3_Processor.py
+      CodeUri: ../../
       Events:
         S3UploadEvent:
           Type: S3
@@ -124,12 +124,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "sqs-worker-${AWS::AccountId}"
-      Handler: src/SQS_Worker.lambda_handler
+      Handler: SQS_Worker.lambda_handler
       Runtime: python3.11
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: src/SQS_Worker.py
+      CodeUri: ../../
       Events:
         SQSEvent:
           Type: SQS
@@ -141,12 +141,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "status-handler-${AWS::AccountId}"
-      Handler: src/Get_Status.lambda_handler
+      Handler: Get_Status.lambda_handler
       Runtime: python3.11
       Role: !GetAtt LambdaExecutionRole.Arn
       MemorySize: 128
       Timeout: 3
-      CodeUri: src/Get_Status.py
+      CodeUri: ../../
       Events:
         ApiStatus:
           Type: Api
