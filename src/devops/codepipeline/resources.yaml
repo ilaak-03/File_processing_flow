@@ -14,7 +14,7 @@ Resources:
   FileMetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: FileMetadataTable
+      TableName: !Sub "FileMetadata-${AWS::AccountId}"
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: fileId
