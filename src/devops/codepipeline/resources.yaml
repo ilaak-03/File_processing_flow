@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Core infrastructure for file processing system
-
+Transform: AWS::Serverless-2016-10-31
+Description: Core infrastructure for file processing system (SAM version)
 
 Parameters:
   Environment:
@@ -12,16 +12,13 @@ Resources:
   # DynamoDB Table
   #################################
   FileMetadataTable:
-    Type: AWS::DynamoDB::Table
+    Type: AWS::Serverless::SimpleTable
     Properties:
       TableName: !Sub "FileMetadata-${AWS::AccountId}"
+      PrimaryKey:
+        Name: fileId
+        Type: String
       BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: fileId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: fileId
-          KeyType: HASH
 
   #################################
   # SQS + DLQ
@@ -69,169 +66,100 @@ Resources:
                 Resource: "*"
 
   #################################
-  # Lambda Functions
-  #################################
-  UploadLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "upload-handler-${AWS::AccountId}"
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Handler: src/Upload_File.lambda_handler
-      Code:
-        ZipFile: |
-          def lambda_handler(event, context):
-              return {"statusCode": 200, "body": "Upload bootstrap"}
-
-  S3ProcessorLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "s3-processor-${AWS::AccountId}"
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Handler: src/S3_Processor.lambda_handler
-      Code:
-        ZipFile: |
-          def lambda_handler(event, context):
-              print(event)
-
-  SQSWorkerLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "sqs-worker-${AWS::AccountId}"
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Handler: src/SQS_Worker.lambda_handler
-      Code:
-        ZipFile: |
-          def lambda_handler(event, context):
-              print(event)
-
-  StatusLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      FunctionName: !Sub "status-handler-${AWS::AccountId}"
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      Handler: src/Get_Status.lambda_handler
-      Code:
-        ZipFile: |
-          def lambda_handler(event, context):
-              return {"statusCode": 200, "body": "Status bootstrap"}
-
-  UploadApiInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref UploadLambda
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-        arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/dev/POST/upload
-
-  StatusApiInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref StatusLambda
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub
-        arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${Api}/dev/GET/status/{fileId}
-
-  #################################
   # S3 Bucket
   #################################
   UploadBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub "file-upload-${AWS::AccountId}"
-      NotificationConfiguration:
-        LambdaConfigurations:
-        - Event: s3:ObjectCreated:*
-          Function: !GetAtt S3ProcessorLambda.Arn
-
-#################################
-# S3 → Lambda Permission
-#################################
-  S3InvokePermission:
-    Type: AWS::Lambda::Permission
-    DependsOn: UploadBucket
-    Properties:
-      FunctionName: !Ref S3ProcessorLambda
-      Action: lambda:InvokeFunction
-      Principal: s3.amazonaws.com
-      SourceArn: !Sub "arn:aws:s3:::file-upload-${AWS::AccountId}"
-           
-  #################################
-  # SQS → Lambda mapping
-  #################################
-  SQSEventMapping:
-    Type: AWS::Lambda::EventSourceMapping
-    Properties:
-      EventSourceArn: !GetAtt ProcessingQueue.Arn
-      FunctionName: !Ref SQSWorkerLambda
-      BatchSize: 10
-      Enabled: true
 
   #################################
   # API Gateway
   #################################
-  Api:
-    Type: AWS::ApiGateway::RestApi
-    Properties:
-      Name: !Sub "file-api-${AWS::AccountId}"
+  MyApi:
+  Type: AWS::Serverless::Api
+  Properties:
+    Name: !Sub "file-api-${AWS::AccountId}" 
+    StageName: dev
 
-  UploadResource:
-    Type: AWS::ApiGateway::Resource
+  #################################
+  # Lambda Functions (SAM)
+  #################################
+  UploadLambda:
+    Type: AWS::Serverless::Function
     Properties:
-      RestApiId: !Ref Api
-      ParentId: !GetAtt Api.RootResourceId
-      PathPart: upload
+      FunctionName: !Sub "upload-handler-${AWS::AccountId}"
+      Handler: src/Upload_File.lambda_handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      MemorySize: 128
+      Timeout: 3
+      CodeUri: src/Upload_File.py
+      Events:
+        ApiUpload:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi      
+            Path: /upload
+            Method: POST
 
-  StatusResource:
-    Type: AWS::ApiGateway::Resource
+  S3ProcessorLambda:
+    Type: AWS::Serverless::Function
     Properties:
-      RestApiId: !Ref Api
-      ParentId: !GetAtt Api.RootResourceId
-      PathPart: status
+      FunctionName: !Sub "s3-processor-${AWS::AccountId}"
+      Handler: src/S3_Processor.lambda_handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      MemorySize: 128
+      Timeout: 3
+      CodeUri: src/S3_Processor.py
+      Events:
+        S3UploadEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref UploadBucket
+            Events: s3:ObjectCreated:*
 
-  UploadMethod:
-    Type: AWS::ApiGateway::Method
+  SQSWorkerLambda:
+    Type: AWS::Serverless::Function
     Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref UploadResource
-      HttpMethod: POST
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UploadLambda.Arn}/invocations"
+      FunctionName: !Sub "sqs-worker-${AWS::AccountId}"
+      Handler: src/SQS_Worker.lambda_handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      MemorySize: 128
+      Timeout: 3
+      CodeUri: src/SQS_Worker.py
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ProcessingQueue.Arn
+            BatchSize: 10
 
-  StatusMethod:
-    Type: AWS::ApiGateway::Method
+  StatusLambda:
+    Type: AWS::Serverless::Function
     Properties:
-      RestApiId: !Ref Api
-      ResourceId: !Ref StatusResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${StatusLambda.Arn}/invocations"
-
-  ApiDeployment:
-    Type: AWS::ApiGateway::Deployment
-    DependsOn:
-      - UploadMethod
-      - StatusMethod
-    Properties:
-      RestApiId: !Ref Api
-      StageName: dev
-      
+      FunctionName: !Sub "status-handler-${AWS::AccountId}"
+      Handler: src/Get_Status.lambda_handler
+      Runtime: python3.11
+      Role: !GetAtt LambdaExecutionRole.Arn
+      MemorySize: 128
+      Timeout: 3
+      CodeUri: src/Get_Status.py
+      Events:
+        ApiStatus:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi      # Attach to existing API
+            Path: /status/{fileId}
+            Method: GET
+            
 Outputs:
   UploadApiUrl:
-    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev/upload"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/upload"
     Description: "POST URL for Upload Lambda"
 
   StatusApiUrl:
-    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/dev/status"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/status/{fileId}"
     Description: "GET URL for Status Lambda"

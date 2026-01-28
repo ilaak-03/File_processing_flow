@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: CI/CD pipeline for Lambdas
+Description: CI/CD pipeline for Lambda SAM deployment
 
 Parameters:
   GitHubOwner:
@@ -48,9 +48,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - lambda:UpdateFunctionCode
+                  - cloudformation:*
                   - s3:*
                   - logs:*
+                  - lambda:*
+                  - apigateway:*
                 Resource: "*"
 
   #################################
@@ -70,10 +72,6 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
-        EnvironmentVariables:
-          - Name: AWS_DEFAULT_REGION
-            Value: ap-south-1
-      
 
   #################################
   # Deploy Project
@@ -92,12 +90,6 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:7.0
-        EnvironmentVariables:
-          - Name: ENVIRONMENT
-            Value: !Ref Environment
-        EnvironmentVariables:
-          - Name: AWS_DEFAULT_REGION
-            Value: ap-south-1
 
   #################################
   # CodePipeline Role
@@ -135,10 +127,6 @@ Resources:
         Type: S3
         Location: !Ref ArtifactBucket
       Stages:
-
-        #################################
-        # Source Stage
-        #################################
         - Name: Source
           Actions:
             - Name: SourceFromGitHub
@@ -153,13 +141,9 @@ Resources:
                 BranchName: !Ref GitHubBranch
               OutputArtifacts:
                 - Name: SourceOutput
-
-        #################################
-        # Build Stage
-        #################################
         - Name: Build
           Actions:
-            - Name: PackageLambdas
+            - Name: SAMBuild
               ActionTypeId:
                 Category: Build
                 Owner: AWS
@@ -171,13 +155,9 @@ Resources:
                 - Name: BuildOutput
               Configuration:
                 ProjectName: !Ref BuildCodeBuildProject
-
-        #################################
-        # Deploy Stage
-        #################################
         - Name: Deploy
           Actions:
-            - Name: DeployLambdas
+            - Name: SAMDeploy
               ActionTypeId:
                 Category: Build
                 Owner: AWS

@@ -1,15 +1,19 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      python: 3.11
+    commands:
+      - pip install --upgrade pip
+      - pip install aws-sam-cli
+
   build:
     commands:
-      - mkdir -p dist
-      - zip dist/upload.zip src/Upload_File.py
-      - zip dist/s3processor.zip src/S3_Processor.py
-      - zip dist/sqsworker.zip src/SQS_Worker.py
-      - zip dist/status.zip src/Get_Status.py
-
+      # Build SAM application locally (no Docker)
+      - sam build -t resources.yaml
+      
 artifacts:
   files:
-    - dist/**/*
-    - src/devops/codepipeline/deployspec.yaml
+    # Built SAM artifacts (zipped Lambdas + transformed template)
+    - .aws-sam/build/**/*

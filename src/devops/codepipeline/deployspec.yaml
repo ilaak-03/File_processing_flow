@@ -3,12 +3,11 @@ version: 0.2
 phases:
   build:
     commands:
-      - AWS_ACCOUNT_ID=140857882741
-
-      - aws lambda update-function-code --region ap-south-1 --function-name upload-handler-${AWS_ACCOUNT_ID} --zip-file fileb://dist/upload.zip
-
-      - aws lambda update-function-code --region ap-south-1 --function-name s3-processor-${AWS_ACCOUNT_ID} --zip-file fileb://dist/s3processor.zip
-
-      - aws lambda update-function-code --region ap-south-1 --function-name sqs-worker-${AWS_ACCOUNT_ID} --zip-file fileb://dist/sqsworker.zip
-
-      - aws lambda update-function-code --region ap-south-1 --function-name status-handler-${AWS_ACCOUNT_ID} --zip-file fileb://dist/status.zip
+      # Deploy the SAM-built template
+      - sam deploy \
+          --template-file .aws-sam/build/template.yaml \
+          --stack-name file-flow-resources-dev \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --region ap-south-1 \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset
