@@ -12,16 +12,16 @@ phases:
       # Build SAM application locally (no Docker)
       - sam build -t src/devops/codepipeline/resources.yaml
   post_build:
-    commands:
-      # Deploy the SAM-built template
+  commands:
       - sam deploy \
           --template-file .aws-sam/build/template.yaml \
           --stack-name file-flow-resources-dev \
           --capabilities CAPABILITY_NAMED_IAM \
           --region ap-south-1 \
-          --resolve-s3 \
+          --s3-bucket $ARTIFACT_BUCKET \
           --no-confirm-changeset \
           --no-fail-on-empty-changeset
+
 
 artifacts:
   files:
