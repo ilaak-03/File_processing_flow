@@ -98,7 +98,7 @@
         Role: !GetAtt LambdaExecutionRole.Arn
         MemorySize: 128
         Timeout: 3
-        CodeUri: ../../UploadLambda
+        CodeUri: ../UploadLambda
         Events:
           ApiUpload:
             Type: Api
@@ -116,7 +116,7 @@
         Role: !GetAtt LambdaExecutionRole.Arn
         MemorySize: 128
         Timeout: 3
-        CodeUri: ../../S3ProcessorLambda
+        CodeUri: ../S3ProcessorLambda
         Events:
           S3UploadEvent:
             Type: S3
@@ -133,7 +133,7 @@
         Role: !GetAtt LambdaExecutionRole.Arn
         MemorySize: 128
         Timeout: 3
-        CodeUri: ../../SQSWorkerLambda
+        CodeUri: ../SQSWorkerLambda
         Events:
           SQSEvent:
             Type: SQS
@@ -150,7 +150,7 @@
         Role: !GetAtt LambdaExecutionRole.Arn
         MemorySize: 128
         Timeout: 3
-        CodeUri: ../../StatusLambda
+        CodeUri: ../StatusLambda
         Events:
           ApiStatus:
             Type: Api
