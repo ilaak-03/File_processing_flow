@@ -13,7 +13,6 @@ phases:
     commands:
       - echo "Entering SAM template directory"
       - echo "Running SAM build"
-      - ls -la src/UploadLambda
       - sam build --template-file src/devops/codepipeline/resources.yaml
       - ls -la .aws-sam/build
 
