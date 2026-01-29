@@ -15,7 +15,7 @@ phases:
       - cd src/devops/codepipeline
       - ls -la
       - echo "Running SAM build"
-      - sam build
+      - sam build --template-file resources.yaml
       - ls -la .aws-sam/build
 
   post_build:
