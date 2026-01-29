@@ -1,169 +1,169 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Transform: AWS::Serverless-2016-10-31
-Description: Core infrastructure for file processing system (SAM version)
+  AWSTemplateFormatVersion: "2010-09-09"
+  Transform: AWS::Serverless-2016-10-31
+  Description: Core infrastructure for file processing system (SAM version)
 
-Parameters:
-  Environment:
-    Type: String
+  Parameters:
+    Environment:
+      Type: String
 
-Resources:
+  Resources:
 
-  #################################
-  # DynamoDB Table
-  #################################
-  FileMetadataTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: !Sub "FileMetadata-${AWS::AccountId}"
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: fileId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: fileId
-          KeyType: HASH
+    #################################
+    # DynamoDB Table
+    #################################
+    FileMetadataTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: !Sub "FileMetadata-${AWS::AccountId}"
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: fileId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: fileId
+            KeyType: HASH
 
 
-  #################################
-  # SQS + DLQ
-  #################################
-  ProcessingDLQ:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "file-processing-dlq-${AWS::AccountId}"
+    #################################
+    # SQS + DLQ
+    #################################
+    ProcessingDLQ:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: !Sub "file-processing-dlq-${AWS::AccountId}"
 
-  ProcessingQueue:
-    Type: AWS::SQS::Queue
-    Properties:
-      QueueName: !Sub "file-processing-main-${AWS::AccountId}"
-      RedrivePolicy:
-        deadLetterTargetArn: !GetAtt ProcessingDLQ.Arn
-        maxReceiveCount: 5
+    ProcessingQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: !Sub "file-processing-main-${AWS::AccountId}"
+        RedrivePolicy:
+          deadLetterTargetArn: !GetAtt ProcessingDLQ.Arn
+          maxReceiveCount: 5
 
-  #################################
-  # Lambda IAM Role (shared)
-  #################################
-  LambdaExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "lambda-exec-${AWS::AccountId}"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: LambdaAWSPolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:*
-                  - sqs:*
-                  - dynamodb:*
-                  - logs:*
-                  - ses:SendEmail
-                  - ses:SendRawEmail
-                Resource: "*"
+    #################################
+    # Lambda IAM Role (shared)
+    #################################
+    LambdaExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: !Sub "lambda-exec-${AWS::AccountId}"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: LambdaAWSPolicy
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - s3:*
+                    - sqs:*
+                    - dynamodb:*
+                    - logs:*
+                    - ses:SendEmail
+                    - ses:SendRawEmail
+                  Resource: "*"
 
-  #################################
-  # S3 Bucket
-  #################################
-  UploadBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "file-upload-${AWS::AccountId}"
+    #################################
+    # S3 Bucket
+    #################################
+    UploadBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: !Sub "file-upload-${AWS::AccountId}"
 
-  #################################
-  # API Gateway
-  #################################
-  MyApi:
-    Type: AWS::Serverless::Api
-    Properties:
-      Name: !Sub "file-api-${AWS::AccountId}" 
-      StageName: dev
+    #################################
+    # API Gateway
+    #################################
+    MyApi:
+      Type: AWS::Serverless::Api
+      Properties:
+        Name: !Sub "file-api-${AWS::AccountId}" 
+        StageName: dev
 
-  #################################
-  # Lambda Functions (SAM)
-  #################################
-  UploadLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "upload-handler-${AWS::AccountId}"
-      Handler: Upload_File.lambda_handler
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      MemorySize: 128
-      Timeout: 3
-      CodeUri: ../../UploadLambda
-      Events:
-        ApiUpload:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MyApi      
-            Path: /upload
-            Method: POST
+    #################################
+    # Lambda Functions (SAM)
+    #################################
+    UploadLambda:
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: !Sub "upload-handler-${AWS::AccountId}"
+        Handler: Upload_File.lambda_handler
+        Runtime: python3.11
+        Role: !GetAtt LambdaExecutionRole.Arn
+        MemorySize: 128
+        Timeout: 3
+        CodeUri: ../../UploadLambda
+        Events:
+          ApiUpload:
+            Type: Api
+            Properties:
+              RestApiId: !Ref MyApi      
+              Path: /upload
+              Method: POST
 
-  S3ProcessorLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "s3-processor-${AWS::AccountId}"
-      Handler: S3_Processor.lambda_handler
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      MemorySize: 128
-      Timeout: 3
-      CodeUri: ../../S3ProcessorLambda
-      Events:
-        S3UploadEvent:
-          Type: S3
-          Properties:
-            Bucket: !Ref UploadBucket
-            Events: s3:ObjectCreated:*
+    S3ProcessorLambda:
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: !Sub "s3-processor-${AWS::AccountId}"
+        Handler: S3_Processor.lambda_handler
+        Runtime: python3.11
+        Role: !GetAtt LambdaExecutionRole.Arn
+        MemorySize: 128
+        Timeout: 3
+        CodeUri: ../../S3ProcessorLambda
+        Events:
+          S3UploadEvent:
+            Type: S3
+            Properties:
+              Bucket: !Ref UploadBucket
+              Events: s3:ObjectCreated:*
 
-  SQSWorkerLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "sqs-worker-${AWS::AccountId}"
-      Handler: SQS_Worker.lambda_handler
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      MemorySize: 128
-      Timeout: 3
-      CodeUri: ../../SQSWorkerLambda
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt ProcessingQueue.Arn
-            BatchSize: 10
+    SQSWorkerLambda:
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: !Sub "sqs-worker-${AWS::AccountId}"
+        Handler: SQS_Worker.lambda_handler
+        Runtime: python3.11
+        Role: !GetAtt LambdaExecutionRole.Arn
+        MemorySize: 128
+        Timeout: 3
+        CodeUri: ../../SQSWorkerLambda
+        Events:
+          SQSEvent:
+            Type: SQS
+            Properties:
+              Queue: !GetAtt ProcessingQueue.Arn
+              BatchSize: 10
 
-  StatusLambda:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: !Sub "status-handler-${AWS::AccountId}"
-      Handler: Get_Status.lambda_handler
-      Runtime: python3.11
-      Role: !GetAtt LambdaExecutionRole.Arn
-      MemorySize: 128
-      Timeout: 3
-      CodeUri: ../../StatusLambda
-      Events:
-        ApiStatus:
-          Type: Api
-          Properties:
-            RestApiId: !Ref MyApi      # Attach to existing API
-            Path: /status/{fileId}
-            Method: GET
-            
-Outputs:
-  UploadApiUrl:
-    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/upload"
-    Description: "POST URL for Upload Lambda"
+    StatusLambda:
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: !Sub "status-handler-${AWS::AccountId}"
+        Handler: Get_Status.lambda_handler
+        Runtime: python3.11
+        Role: !GetAtt LambdaExecutionRole.Arn
+        MemorySize: 128
+        Timeout: 3
+        CodeUri: ../../StatusLambda
+        Events:
+          ApiStatus:
+            Type: Api
+            Properties:
+              RestApiId: !Ref MyApi      # Attach to existing API
+              Path: /status/{fileId}
+              Method: GET
+              
+  Outputs:
+    UploadApiUrl:
+      Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/upload"
+      Description: "POST URL for Upload Lambda"
 
-  StatusApiUrl:
-    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/status/{fileId}"
-    Description: "GET URL for Status Lambda"
+    StatusApiUrl:
+      Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/dev/status/{fileId}"
+      Description: "GET URL for Status Lambda"
