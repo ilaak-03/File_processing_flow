@@ -76,6 +76,7 @@
       Type: AWS::S3::Bucket
       Properties:
         BucketName: !Sub "file-upload-${AWS::AccountId}"
+      DeletionPolicy: Retain
 
     #################################
     # API Gateway
