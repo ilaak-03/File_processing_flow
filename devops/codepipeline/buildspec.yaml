@@ -13,7 +13,7 @@ phases:
     commands:
       - echo "Entering SAM template directory"
       - echo "Running SAM build"
-      - sam build --template-file src/devops/codepipeline/resources.yaml
+      - sam build --template-file devops/codepipeline/resources.yaml
       - ls -la .aws-sam/build
 
   post_build:

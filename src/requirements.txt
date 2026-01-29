@@ -1,2 +1,0 @@
-import cgi
-import boto3
