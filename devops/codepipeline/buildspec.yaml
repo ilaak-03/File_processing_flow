@@ -13,7 +13,7 @@ phases:
   build:
     commands:
       - echo "Starting SAM build"
-      - sam build --template-file devops/codepipeline/resources.yaml --use-container
+      - sam build --template-file devops/codepipeline/resources.yaml
       - echo "Listing built files"
       - ls -la .aws-sam/build
 
