@@ -72,7 +72,7 @@
     #################################
     # S3 Bucket
     #################################
-    UploadBucket:
+    UploadBucketV2:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: !Sub "file-upload-${AWS::AccountId}"
@@ -121,7 +121,7 @@
           S3UploadEvent:
             Type: S3
             Properties:
-              Bucket: !Ref UploadBucket
+              Bucket: !Ref UploadBucketV2
               Events: s3:ObjectCreated:*
 
     SQSWorkerLambda:
