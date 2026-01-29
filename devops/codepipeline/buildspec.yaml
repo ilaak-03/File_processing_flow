@@ -5,28 +5,29 @@ phases:
     runtime-versions:
       python: 3.11
     commands:
+      - echo "Updating pip and installing SAM CLI"
       - pip install --upgrade pip
       - pip install aws-sam-cli
       - sam --version
 
   build:
     commands:
-      - echo "Entering SAM template directory"
-      - echo "Running SAM build"
-      - sam build --template-file devops/codepipeline/resources.yaml
+      - echo "Starting SAM build"
+      - sam build --template-file devops/codepipeline/resources.yaml --use-container
+      - echo "Listing built files"
       - ls -la .aws-sam/build
 
   post_build:
     commands:
       - echo "Deploying SAM stack"
-      - sam deploy
-          --template-file .aws-sam/build/template.yaml
-          --stack-name file-flow-resources-dev
-          --region ap-south-1
-          --s3-bucket file-processing-pipeline-artifacts
-          --capabilities CAPABILITY_NAMED_IAM
-          --parameter-overrides Environment=dev
-          --no-confirm-changeset
+      - sam deploy \
+          --template-file .aws-sam/build/template.yaml \
+          --stack-name file-flow-resources-dev \
+          --region ap-south-1 \
+          --s3-bucket file-processing-pipeline-artifacts \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --parameter-overrides Environment=dev \
+          --no-confirm-changeset \
           --no-fail-on-empty-changeset
 
 artifacts:
