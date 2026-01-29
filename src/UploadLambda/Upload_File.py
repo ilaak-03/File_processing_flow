@@ -11,7 +11,7 @@ s3 = boto3.client("s3")
 dynamodb = boto3.resource("dynamodb")
 
 # Config
-BUCKET = "file-upload-140857882741"
+BUCKET = "file-upload-s3-bucket-140857882741"
 TABLE = dynamodb.Table("FileMetadata-140857882741")
 MAX_SIZE_MB = 5
 ALLOWED_EXTENSIONS = ["pdf", "doc", "txt"]
