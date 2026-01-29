@@ -75,8 +75,8 @@
     UploadBucketV2:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: !Sub "file-upload-${AWS::AccountId}"
-      
+        BucketName: !Sub "file-upload-s3-bucket-${AWS::AccountId}"
+
     #################################
     # API Gateway
     #################################
