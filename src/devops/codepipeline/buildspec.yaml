@@ -5,16 +5,17 @@ phases:
     runtime-versions:
       python: 3.11
     commands:
-      - echo "Installing SAM CLI"
       - pip install --upgrade pip
       - pip install aws-sam-cli
       - sam --version
 
   build:
     commands:
-      - echo "Building SAM application"
-      - sam build src/devops/codepipeline/resources.yaml
-      - echo "Build output:"
+      - echo "Entering SAM template directory"
+      - cd src/devops/codepipeline
+      - ls -la
+      - echo "Running SAM build"
+      - sam build
       - ls -la .aws-sam/build
 
   post_build:
