@@ -53,7 +53,6 @@ def lambda_handler(event, context):
             filename = fileitem.filename
             user_email = form.getfirst("userEmail")
 
-        # --- 2️⃣ Raw binary uploads (application/pdf, octet-stream, etc.) ---
         else:
             if is_base64:
                 file_bytes = b64decode(body)
