@@ -1,27 +1,46 @@
 version: 0.2
 
+env:
+  variables:
+    STACK_NAME: file-flow-resources-dev
+    RESET_STACK: "true"   
+    AWS_REGION: ap-south-1
+
 phases:
   install:
     runtime-versions:
       python: 3.11
     commands:
-      - echo "Updating pip and installing SAM CLI"
       - pip install --upgrade pip
-      - pip install --upgrade aws-sam-cli
-      - sam --version
+      - pip install aws-sam-cli
+
+  pre_build:
+    commands:
+      - echo "RESET_STACK=$RESET_STACK"
+
+      - |
+        if [ "$RESET_STACK" = "true" ]; then
+          echo "⚠️ Deleting stack $STACK_NAME"
+
+          aws cloudformation delete-stack \
+            --stack-name $STACK_NAME
+
+          aws cloudformation wait stack-delete-complete \
+            --stack-name $STACK_NAME
+
+          echo "✅ Stack deleted"
+        else
+          echo "ℹ️ Stack deletion skipped"
+        fi
 
   build:
     commands:
-      - echo "Starting SAM build"
-      - sam build --template-file devops/codepipeline/resources.yaml
-      - echo "Listing built files"
-      - ls -la .aws-sam/build
+      - sam build
 
   post_build:
     commands:
-      - echo "Deploying SAM stack"
-      - sam deploy --template-file .aws-sam/build/template.yaml --stack-name file-flow-resources-dev --region ap-south-1 --s3-bucket file-processing-pipeline-artifacts --capabilities CAPABILITY_NAMED_IAM --parameter-overrides Environment=dev --no-confirm-changeset --no-fail-on-empty-changeset
-
-artifacts:
-  files:
-    - '**/*'
+      - sam deploy \
+          --stack-name $STACK_NAME \
+          --region $AWS_REGION \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --no-confirm-changeset
