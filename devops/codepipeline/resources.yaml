@@ -99,6 +99,12 @@
         MemorySize: 128
         Timeout: 3
         CodeUri: ../../src/UploadLambda
+        Environment:
+          Variables:
+            UPLOAD_BUCKET: !Ref UploadBucketV2
+            METADATA_TABLE: !Ref FileMetadataTable
+            MAX_SIZE_MB: "5"
+            ALLOWED_EXTENSIONS: "pdf,doc,txt"
         Events:
           ApiUpload:
             Type: Api

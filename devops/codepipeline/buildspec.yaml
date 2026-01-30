@@ -1,45 +1,22 @@
 version: 0.2
-
-env:
-  variables:
-    STACK_NAME: file-flow-resources-dev
-    RESET_STACK: "true"   
-    AWS_REGION: ap-south-1
-
+ 
 phases:
   install:
     runtime-versions:
       python: 3.11
     commands:
+      - echo "Updating pip and installing SAM CLI"
       - pip install --upgrade pip
-      - pip install aws-sam-cli
-
-  pre_build:
-    commands:
-      - echo "RESET_STACK=$RESET_STACK"
-
-      - |
-        if [ "$RESET_STACK" = "true" ]; then
-          echo "⚠️ Deleting stack $STACK_NAME"
-
-          aws cloudformation delete-stack \
-            --stack-name $STACK_NAME
-
-          aws cloudformation wait stack-delete-complete \
-            --stack-name $STACK_NAME
-
-          echo "✅ Stack deleted"
-        else
-          echo "ℹ️ Stack deletion skipped"
-        fi
-
+      - pip install --upgrade aws-sam-cli
+      - sam --version
+ 
   build:
     commands:
       - echo "Starting SAM build"
       - sam build --template-file devops/codepipeline/resources.yaml
       - echo "Listing built files"
       - ls -la .aws-sam/build
-
+ 
   post_build:
     commands:
       - echo "Deploying SAM stack"
@@ -48,3 +25,5 @@ phases:
 artifacts:
   files:
     - '**/*'
+ 
+ 
