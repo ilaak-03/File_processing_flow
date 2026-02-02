@@ -98,14 +98,6 @@
     #################################
     # S3 Bucket
     #################################
-    UploadBucketV2:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: !Sub "file-upload-s3-bucket-${AWS::AccountId}"
-        NotificationConfiguration:
-          QueueConfigurations:
-            - Event: s3:ObjectCreated:*
-              Queue: !GetAtt ProcessingQueue.Arn
 
     ProcessingQueuePolicy:
       Type: AWS::SQS::QueuePolicy
@@ -124,7 +116,17 @@
                 ArnEquals:
                   aws:SourceArn: !GetAtt UploadBucketV2.Arn
 
+    UploadBucketV2:
+      Type: AWS::S3::Bucket
+      DependsOn: ProcessingQueuePolicy
+      Properties:
+        BucketName: !Sub "file-upload-s3-bucket-${AWS::AccountId}"
+        NotificationConfiguration:
+          QueueConfigurations:
+            - Event: s3:ObjectCreated:*
+              Queue: !GetAtt ProcessingQueue.Arn
 
+    
     #################################
     # API Gateway
     #################################
