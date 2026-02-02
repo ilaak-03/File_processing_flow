@@ -19,32 +19,34 @@ Thanks.
 """
 
 def lambda_handler(event, context):
-    for record in event["Records"]:
-        body = json.loads(record["body"])
-        file_id = body["fileId"]
-        
+    for sqs_record in event["Records"]:
+        body = json.loads(sqs_record["body"])
 
-        processed_at = datetime.datetime.utcnow().isoformat()
-        status = "COMPLETED"
+        for s3_record in body["Records"]:
+            key = s3_record["s3"]["object"]["key"]
+            filename = key.split("/")[-1]
+            file_id = filename.split("_")[0]
 
-        response = TABLE.get_item(Key={"fileId": file_id})
-        item = response.get("Item")
+            processed_at = datetime.datetime.utcnow().isoformat()
+            status = "COMPLETED"
 
-        if not item:
-            raise Exception(f"DynamoDB item not found for fileId={file_id}")
-            
-        filename = item.get("filename")
-        user_email = item.get("userEmail")
+            response = TABLE.get_item(Key={"fileId": file_id})
+            item = response.get("Item")
 
-        TABLE.update_item(
-            Key={"fileId": file_id},
-            UpdateExpression="SET #s = :s, processedAt = :p",
-            ExpressionAttributeNames={"#s": "status"},
-            ExpressionAttributeValues={":s": status, ":p": processed_at}
-        )
+            if not item:
+                raise Exception(f"DynamoDB item not found for fileId={file_id}")
 
-        if user_email:
-            try:
+            filename = item.get("filename")
+            user_email = item.get("userEmail")
+
+            TABLE.update_item(
+                Key={"fileId": file_id},
+                UpdateExpression="SET #s = :s, processedAt = :p",
+                ExpressionAttributeNames={"#s": "status"},
+                ExpressionAttributeValues={":s": status, ":p": processed_at}
+            )
+
+            if user_email:
                 response = ses.send_email(
                     Source=SENDER,
                     Destination={"ToAddresses": [user_email]},
@@ -53,11 +55,9 @@ def lambda_handler(event, context):
                         "Body": {"Text": {"Data": EMAIL_TEMPLATE.format(filename=filename, status=status)}}
                     }
                 )
-            except Exception as e:
-                raise Exception(f"SES failed for {file_id}: {str(e)}")
 
-            TABLE.update_item(
-                Key={"fileId": file_id},
-                UpdateExpression="SET emailSent = :e, sesMessageId = :m",
-                ExpressionAttributeValues={":e": True, ":m": response["MessageId"]}
-            )
+                TABLE.update_item(
+                    Key={"fileId": file_id},
+                    UpdateExpression="SET emailSent = :e, sesMessageId = :m",
+                    ExpressionAttributeValues={":e": True, ":m": response["MessageId"]}
+                )

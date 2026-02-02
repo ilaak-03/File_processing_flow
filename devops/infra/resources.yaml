@@ -102,6 +102,28 @@
       Type: AWS::S3::Bucket
       Properties:
         BucketName: !Sub "file-upload-s3-bucket-${AWS::AccountId}"
+        NotificationConfiguration:
+          QueueConfigurations:
+            - Event: s3:ObjectCreated:*
+              Queue: !GetAtt ProcessingQueue.Arn
+
+    ProcessingQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref ProcessingQueue
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: s3.amazonaws.com
+              Action: sqs:SendMessage
+              Resource: !GetAtt ProcessingQueue.Arn
+              Condition:
+                ArnEquals:
+                  aws:SourceArn: !GetAtt UploadBucketV2.Arn
+
 
     #################################
     # API Gateway
@@ -138,23 +160,6 @@
               RestApiId: !Ref MyApi      
               Path: /upload
               Method: POST
-
-    S3ProcessorLambda:
-      Type: AWS::Serverless::Function
-      Properties:
-        FunctionName: !Sub "s3-processor-${AWS::AccountId}"
-        Handler: S3_Processor.lambda_handler
-        Runtime: python3.11
-        Role: !GetAtt LambdaExecutionRole.Arn
-        MemorySize: 128
-        Timeout: 3
-        CodeUri:  ../../src/S3ProcessorLambda
-        Events:
-          S3UploadEvent:
-            Type: S3
-            Properties:
-              Bucket: !Ref UploadBucketV2
-              Events: s3:ObjectCreated:*
 
     SQSWorkerLambda:
       Type: AWS::Serverless::Function
