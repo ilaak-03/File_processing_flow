@@ -109,6 +109,7 @@
                   Action:
                   - ses:SendEmail
                   - ses:SendRawEmail
+                  - ses:GetIdentityVerificationAttributes
                   Resource: "*"
 
 
