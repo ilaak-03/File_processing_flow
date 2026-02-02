@@ -88,7 +88,7 @@
             - Effect: Allow
               Principal:
                 Service: lambda.amazonaws.com
-                Action: sts:AssumeRole
+              Action: sts:AssumeRole
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
           - arn:aws:iam::aws:policy/AmazonS3FullAccess 
