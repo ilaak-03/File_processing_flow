@@ -53,7 +53,8 @@
             - Effect: Allow
               Principal:
                 Service: lambda.amazonaws.com
-              Action: sts:AssumeRole
+                Action: sts:AssumeRole
+
         Policies:
           - PolicyName: LambdaAWSPolicy
             PolicyDocument:
@@ -61,13 +62,38 @@
               Statement:
                 - Effect: Allow
                   Action:
-                    - s3:*
-                    - sqs:*
-                    - dynamodb:*
-                    - logs:*
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "arn:aws:logs:*:*:*"
+
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                    - s3:GetObject
+                  Resource: !Sub "${UploadBucketV2.Arn}/*"
+
+                - Effect: Allow
+                  Action:
+                    - sqs:SendMessage
+                    - sqs:ReceiveMessage
+                    - sqs:DeleteMessage
+                    - sqs:GetQueueAttributes
+                  Resource: !GetAtt ProcessingQueue.Arn
+
+                - Effect: Allow
+                  Action:
+                    - dynamodb:PutItem
+                    - dynamodb:GetItem
+                    - dynamodb:UpdateItem
+                  Resource: !GetAtt FileMetadataTable.Arn
+
+                - Effect: Allow
+                  Action:
                     - ses:SendEmail
                     - ses:SendRawEmail
                   Resource: "*"
+
 
     #################################
     # S3 Bucket
@@ -140,6 +166,9 @@
         MemorySize: 128
         Timeout: 3
         CodeUri: ../../src/SQSWorkerLambda
+        Environment:
+          Variables:
+            METADATA_TABLE: !Ref FileMetadataTable
         Events:
           SQSEvent:
             Type: SQS
@@ -157,11 +186,14 @@
         MemorySize: 128
         Timeout: 3
         CodeUri: ../../src/StatusLambda
+        Environment:
+          Variables:
+            METADATA_TABLE: !Ref FileMetadataTable
         Events:
           ApiStatus:
             Type: Api
             Properties:
-              RestApiId: !Ref MyApi      # Attach to existing API
+              RestApiId: !Ref MyApi      
               Path: /status/{fileId}
               Method: GET
               

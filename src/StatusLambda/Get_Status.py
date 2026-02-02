@@ -1,7 +1,9 @@
 import json, boto3
+import os
 
 dynamodb = boto3.resource("dynamodb")
-TABLE = dynamodb.Table("FileMetadata-140857882741")
+METADATA_TABLE = os.environ["METADATA_TABLE"]
+TABLE = dynamodb.Table(METADATA_TABLE)
 
 def lambda_handler(event, context):
     file_id = event.get("pathParameters", {}).get("fileId")

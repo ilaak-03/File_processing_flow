@@ -1,11 +1,13 @@
 import json
+import os
 import boto3
 import datetime
 
 dynamodb = boto3.resource("dynamodb")
 ses = boto3.client("ses")
 
-TABLE = dynamodb.Table("FileMetadata-140857882741")
+METADATA_TABLE = os.environ["METADATA_TABLE"]
+TABLE = dynamodb.Table(METADATA_TABLE)
 SENDER = "ilaakmandya@gmail.com"
 
 EMAIL_TEMPLATE = """Hello,
