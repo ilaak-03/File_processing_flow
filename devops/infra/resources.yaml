@@ -68,59 +68,7 @@
             - Event: s3:ObjectCreated:*
               Queue: !GetAtt ProcessingQueue.Arn
 
-    #################################
-    # Lambda IAM Role (shared)
-    #################################
-    LambdaExecutionRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: lambda.amazonaws.com
-                Action: sts:AssumeRole
-
-        Policies:
-          - PolicyName: LambdaAWSPolicy
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource: "arn:aws:logs:*:*:*"
-
-                - Effect: Allow
-                  Action:
-                    - s3:PutObject
-                    - s3:GetObject
-                  Resource: !Sub "${UploadBucketV2.Arn}/*"
-
-                - Effect: Allow
-                  Action:
-                    - sqs:SendMessage
-                    - sqs:ReceiveMessage
-                    - sqs:DeleteMessage
-                    - sqs:GetQueueAttributes
-                  Resource: !GetAtt ProcessingQueue.Arn
-
-                - Effect: Allow
-                  Action:
-                    - dynamodb:PutItem
-                    - dynamodb:GetItem
-                    - dynamodb:UpdateItem
-                  Resource: !GetAtt FileMetadataTable.Arn
-
-                - Effect: Allow
-                  Action:
-                    - ses:SendEmail
-                    - ses:SendRawEmail
-                  Resource: "*"
-
+    
     #################################
     # API Gateway
     #################################
@@ -139,7 +87,7 @@
         FunctionName: !Sub "upload-handler-${AWS::AccountId}"
         Handler: Upload_File.lambda_handler
         Runtime: python3.11
-        Role: !GetAtt LambdaExecutionRole.Arn
+        Role: arn:aws:iam::140857882741:role/FileIntakeSharedLambdaRole
         MemorySize: 128
         Timeout: 3
         CodeUri: ../../src/UploadLambda
@@ -163,7 +111,7 @@
         FunctionName: !Sub "sqs-worker-${AWS::AccountId}"
         Handler: SQS_Worker.lambda_handler
         Runtime: python3.11
-        Role: !GetAtt LambdaExecutionRole.Arn
+        Role: arn:aws:iam::140857882741:role/FileIntakeSharedLambdaRole
         MemorySize: 128
         Timeout: 3
         CodeUri: ../../src/SQSWorkerLambda
@@ -183,7 +131,7 @@
         FunctionName: !Sub "status-handler-${AWS::AccountId}"
         Handler: Get_Status.lambda_handler
         Runtime: python3.11
-        Role: !GetAtt LambdaExecutionRole.Arn
+        Role: arn:aws:iam::140857882741:role/FileIntakeSharedLambdaRole
         MemorySize: 128
         Timeout: 3
         CodeUri: ../../src/StatusLambda
