@@ -89,25 +89,14 @@
               Principal:
                 Service: lambda.amazonaws.com
                 Action: sts:AssumeRole
+        ManagedPolicyArns:
+          - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
+          - arn:aws:iam::aws:policy/service-role/AmazonS3FullAccess
         Policies:
           - PolicyName: LambdaAWSPolicy
             PolicyDocument:
               Version: "2012-10-17"
               Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource: "arn:aws:logs:*:*:*"
-
-                - Effect: Allow
-                  Action:
-                  - s3:PutObject
-                  - s3:GetObject
-                  Resource: !Sub "${UploadBucketV2.Arn}/*"
-
-            
                 - Effect: Allow
                   Action:
                   - dynamodb:PutItem
@@ -122,14 +111,6 @@
                   - ses:SendRawEmail
                   Resource: "*"
 
-                - Effect: Allow
-                  Action:
-                  - sqs:SendMessage
-                  - sqs:ReceiveMessage
-                  - sqs:DeleteMessage
-                  - sqs:GetQueueAttributes
-                  Resource:
-                    - !GetAtt ProcessingQueue.Arn
 
 
     #################################
