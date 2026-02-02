@@ -41,6 +41,34 @@
           maxReceiveCount: 5
 
     #################################
+    # S3 Bucket
+    #################################
+
+    ProcessingQueuePolicy:
+      Type: AWS::SQS::QueuePolicy
+      Properties:
+        Queues:
+          - !Ref ProcessingQueue
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: s3.amazonaws.com
+              Action: sqs:SendMessage
+              Resource: !GetAtt ProcessingQueue.Arn
+
+    UploadBucketV2:
+      Type: AWS::S3::Bucket
+      DependsOn: ProcessingQueuePolicy
+      Properties:
+        BucketName: !Sub "file-upload-s3-bucket-${AWS::AccountId}"
+        NotificationConfiguration:
+          QueueConfigurations:
+            - Event: s3:ObjectCreated:*
+              Queue: !GetAtt ProcessingQueue.Arn
+
+    #################################
     # Lambda IAM Role (shared)
     #################################
     LambdaExecutionRole:
@@ -93,36 +121,6 @@
                     - ses:SendRawEmail
                   Resource: "*"
 
-
-    #################################
-    # S3 Bucket
-    #################################
-
-    ProcessingQueuePolicy:
-      Type: AWS::SQS::QueuePolicy
-      Properties:
-        Queues:
-          - !Ref ProcessingQueue
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: s3.amazonaws.com
-              Action: sqs:SendMessage
-              Resource: !GetAtt ProcessingQueue.Arn
-
-    UploadBucketV2:
-      Type: AWS::S3::Bucket
-      DependsOn: ProcessingQueuePolicy
-      Properties:
-        BucketName: !Sub "file-upload-s3-bucket-${AWS::AccountId}"
-        NotificationConfiguration:
-          QueueConfigurations:
-            - Event: s3:ObjectCreated:*
-              Queue: !GetAtt ProcessingQueue.Arn
-
-    
     #################################
     # API Gateway
     #################################
