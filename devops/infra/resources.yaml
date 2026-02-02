@@ -46,7 +46,6 @@
     LambdaExecutionRole:
       Type: AWS::IAM::Role
       Properties:
-        RoleName: !Sub "lambda-exec-${AWS::AccountId}"
         AssumeRolePolicyDocument:
           Version: "2012-10-17"
           Statement:
