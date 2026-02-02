@@ -91,7 +91,7 @@
                 Action: sts:AssumeRole
         ManagedPolicyArns:
           - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
-          - arn:aws:iam::aws:policy/service-role/AmazonS3FullAccess
+          - arn:aws:iam::aws:policy/AmazonS3FullAccess 
         Policies:
           - PolicyName: LambdaAWSPolicy
             PolicyDocument:
