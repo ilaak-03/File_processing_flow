@@ -112,9 +112,6 @@
                 Service: s3.amazonaws.com
               Action: sqs:SendMessage
               Resource: !GetAtt ProcessingQueue.Arn
-              Condition:
-                ArnEquals:
-                  aws:SourceArn: !GetAtt UploadBucketV2.Arn
 
     UploadBucketV2:
       Type: AWS::S3::Bucket
