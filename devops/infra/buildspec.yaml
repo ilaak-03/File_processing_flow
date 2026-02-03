@@ -1,4 +1,10 @@
 version: 0.2
+
+env:
+  variables:
+    REGION: "ap-south-1"
+    STACK_NAME: "file-flow-resources-dev"
+    ENVIRONMENT: "dev"
  
 phases:
   install:
@@ -21,18 +27,16 @@ phases:
     commands:
       - echo "Deploying SAM stack"
       - |
-      - sam deploy \
-       --template-file .aws-sam/build/template.yaml \
-       --stack-name file-flow-resources-dev \
-       --region "${REGION}" \
-       --s3-bucket "${ARTIFACT_BUCKET}" \
-       --capabilities CAPABILITY_NAMED_IAM \
-       --parameter-overrides Environment=dev \
-       --no-confirm-changeset \
-       --no-fail-on-empty-changeset
+        sam deploy \
+          --template-file .aws-sam/build/template.yaml \
+          --stack-name ${STACK_NAME} \
+          --region ${REGION} \
+          --s3-bucket ${ARTIFACT_BUCKET} \
+          --capabilities CAPABILITY_NAMED_IAM \
+          --parameter-overrides Environment=${ENVIRONMENT} \
+          --no-confirm-changeset \
+          --no-fail-on-empty-changeset
  
 artifacts:
   files:
     - '**/*'
- 
- 
