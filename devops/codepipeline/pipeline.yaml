@@ -42,8 +42,8 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: codebuiltid.amazonaws.com
-            Acon: sts:AssumeRole
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
 
       Policies:
         - PolicyName: SamDeployPolicy
@@ -114,6 +114,7 @@ Resources:
 
               - Effect: Allow
                 Action:
+                  - sqs:SetQueueAttributes
                   - sqs:GetQueueAttributes
                   - sqs:GetQueueUrl
                 Resource:
