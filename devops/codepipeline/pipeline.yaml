@@ -94,11 +94,16 @@ Resources:
                   - lambda:RemovePermission
                   - lambda:TagResource
                   - lambda:UntagResource
+                  - lambda:CreateEventSourceMapping
+                  - lambda:UpdateEventSourceMapping
+                  - lambda:GetEventSourceMapping
+                  - lambda:DeleteEventSourceMapping
                 Resource:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:upload-handler-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:sqs-worker-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:status-handler-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:dlq-processor-${AWS::AccountId}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:event-source-mapping/*"
 
               - Effect: Allow
                 Action:
