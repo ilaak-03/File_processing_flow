@@ -92,6 +92,8 @@ Resources:
                   - lambda:DeleteFunction
                   - lambda:AddPermission
                   - lambda:RemovePermission
+                  - lambda:TagResource
+                  - lambda:UntagResource
                 Resource:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:upload-handler-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:sqs-worker-${AWS::AccountId}"
