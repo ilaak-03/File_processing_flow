@@ -38,7 +38,7 @@
         QueueName: !Sub "file-processing-main-${AWS::AccountId}"
         RedrivePolicy:
           deadLetterTargetArn: !GetAtt ProcessingDLQ.Arn
-          maxReceiveCount: 5
+          maxReceiveCount: 1
 
     #################################
     # S3 Bucket
