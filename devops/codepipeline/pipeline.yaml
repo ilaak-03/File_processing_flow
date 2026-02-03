@@ -60,6 +60,9 @@ Resources:
                   - cloudformation:GetTemplate
                   - cloudformation:GetTemplateSummary
                   - cloudformation:ValidateTemplate
+                  - cloudformation:CreateChangeSet   
+                  - cloudformation:ExecuteChangeSet  
+                  - cloudformation:DescribeChangeSet
                 Resource: "*"
 
               - Effect: Allow
