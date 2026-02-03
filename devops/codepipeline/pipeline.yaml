@@ -18,6 +18,8 @@ Parameters:
   AWSAccountId:
     Type: String
 
+
+
 Resources:
 
   #################################
@@ -32,8 +34,8 @@ Resources:
   # CodeBuild Role
   #################################
 
-  CodeBuildRole:   
-    Type: AWS::IAM::Role    
+  CodeBuildRole:
+    Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
@@ -42,33 +44,46 @@ Resources:
             Principal:
               Service: codebuild.amazonaws.com
             Action: sts:AssumeRole
+
       Policies:
-        - PolicyName: BuildAWSDeployPolicy
+        - PolicyName: SamDeployPolicy
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
-                  - cloudformation:*
-                  - s3:*
-                  - logs:*
-                  - lambda:*
-                  - iam:*
-                  - apigateway:*
-                  - dynamodb:*           
-                  - sqs:*                
-                  - events:*             
+                  - cloudformation:CreateStack
+                  - cloudformation:UpdateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:GetTemplate
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:ValidateTemplate
                 Resource: "*"
+
               - Effect: Allow
                 Action:
                   - s3:PutObject
                   - s3:GetObject
+                  - s3:DeleteObject
                   - s3:ListBucket
                 Resource:
                   - !Sub "arn:aws:s3:::${ArtifactBucketName}"
                   - !Sub "arn:aws:s3:::${ArtifactBucketName}/*"
-                  - "arn:aws:s3:::file-processing-pipeline-artifacts"      
-                  - "arn:aws:s3:::file-processing-pipeline-artifacts/*"   
+
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: "*"
+
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+ 
 
 
   #################################
