@@ -79,7 +79,8 @@ Resources:
                 Action:
                   - iam:GetRole
                   - iam:PassRole
-                Resource: "*"
+                Resource:
+                  - !Sub "arn:aws:iam::${AWSAccountId}:role/file-flow-resources-${Environment}-*"
 
               - Effect: Allow
                 Action:
@@ -91,22 +92,25 @@ Resources:
                   - lambda:DeleteFunction
                   - lambda:AddPermission
                   - lambda:RemovePermission
-                Resource: "*"
+                Resource:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:upload-handler-${AWS::AccountId}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:sqs-worker-${AWS::AccountId}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:status-handler-${AWS::AccountId}"
 
               - Effect: Allow
                 Action:
                   - apigateway:GET
                   - apigateway:POST
-                  - apigateway:PUT
-                  - apigateway:PATCH
-                  - apigateway:DELETE
-                Resource: "*"
+                Resource: 
+                  - !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/file-api-${AWS::AccountId}"
 
               - Effect: Allow
                 Action:
                   - sqs:GetQueueAttributes
                   - sqs:GetQueueUrl
-                Resource: "*"
+                Resource:
+                  - !Sub "arn:aws:sqs:${AWS::Region}:${AWSAccountId}:file-processing-dlq-${AWSAccountId}"
+                  - !Sub "arn:aws:sqs:${AWS::Region}:${AWSAccountId}:file-processing-main-${AWSAccountId}"
 
               - Effect: Allow
                 Action:
@@ -114,7 +118,8 @@ Resources:
                   - dynamodb:DescribeTable
                   - dynamodb:UpdateTable
                   - dynamodb:DeleteTable
-                Resource: "*"
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/FileMetadata-${AWS::AccountId}"
 
               - Effect: Allow
                 Action:
@@ -135,7 +140,7 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: devops/codepipeline/buildspec.yaml
+        BuildSpec: devops/infra/buildspec.yaml
       Artifacts:
         Type: CODEPIPELINE
       Environment:
@@ -159,7 +164,7 @@ Resources:
       ServiceRole: !GetAtt CodeBuildRole.Arn
       Source:
         Type: CODEPIPELINE
-        BuildSpec: devops/codepipeline/buildspec.yaml
+        BuildSpec: devops/infra/buildspec.yaml
       Artifacts:
         Type: CODEPIPELINE
       Environment:
