@@ -165,7 +165,7 @@
       Type: AWS::Serverless::Function
       Properties:
         FunctionName: !Sub "dlq-processor-${AWS::AccountId}"
-        Handler: DLQ_Processor.lambda_handler
+        Handler: DLQProcessor.lambda_handler
         Runtime: python3.11
         Role: !GetAtt LambdaExecutionRole.Arn
         MemorySize: 128
