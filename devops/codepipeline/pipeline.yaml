@@ -42,8 +42,8 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              Service: codebuild.amazonaws.com
-            Action: sts:AssumeRole
+              Service: codebuiltid.amazonaws.com
+            Acon: sts:AssumeRole
 
       Policies:
         - PolicyName: SamDeployPolicy
@@ -103,7 +103,7 @@ Resources:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:sqs-worker-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:status-handler-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:dlq-processor-${AWS::AccountId}"
-                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:event-source-mapping/*"
+                  - "*" 
 
               - Effect: Allow
                 Action:
