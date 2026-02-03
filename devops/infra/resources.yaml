@@ -161,6 +161,27 @@
               Queue: !GetAtt ProcessingQueue.Arn
               BatchSize: 10
 
+    DLQProcessorLambda:
+      Type: AWS::Serverless::Function
+      Properties:
+        FunctionName: !Sub "dlq-processor-${AWS::AccountId}"
+        Handler: DLQ_Processor.lambda_handler
+        Runtime: python3.11
+        Role: !GetAtt LambdaExecutionRole.Arn
+        MemorySize: 128
+        Timeout: 10
+        CodeUri: ../../src/DLQProcessorLambda
+        Environment:
+          Variables:
+            METADATA_TABLE: !Ref FileMetadataTable
+        Events:
+          DLQEvent:
+            Type: SQS
+            Properties:
+              Queue: !GetAtt ProcessingDLQ.Arn
+              BatchSize: 5
+
+
     StatusLambda:
       Type: AWS::Serverless::Function
       Properties:
