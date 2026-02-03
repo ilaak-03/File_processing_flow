@@ -96,6 +96,7 @@ Resources:
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:upload-handler-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:sqs-worker-${AWS::AccountId}"
                   - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:status-handler-${AWS::AccountId}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:dlq-processor-${AWS::AccountId}"
 
               - Effect: Allow
                 Action:
